@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_astar" default="compile.module.astar">
+  <dirname property="module.astar.basedir" file="${ant.file.module_astar}"/>
+  
+  <property name="module.jdk.home.astar" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.astar" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.astar" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.astar" value="-encoding UTF-8 -source 1.8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="astar.output.dir" value="${module.astar.basedir}/out/production/AStar"/>
+  <property name="astar.testoutput.dir" value="${module.astar.basedir}/out/test/AStar"/>
+  
+  <path id="astar.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="astar.module.production.classpath">
+    <path refid="${module.jdk.classpath.astar}"/>
+  </path>
+  
+  <path id="astar.runtime.production.module.classpath">
+    <pathelement location="${astar.output.dir}"/>
+  </path>
+  
+  <path id="astar.module.classpath">
+    <path refid="${module.jdk.classpath.astar}"/>
+    <pathelement location="${astar.output.dir}"/>
+  </path>
+  
+  <path id="astar.runtime.module.classpath">
+    <pathelement location="${astar.testoutput.dir}"/>
+    <pathelement location="${astar.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.astar">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.astar">
+    <patternset refid="excluded.from.module.astar"/>
+  </patternset>
+  
+  <path id="astar.module.sourcepath">
+    <dirset dir="${module.astar.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.astar" depends="compile.module.astar.production,compile.module.astar.tests" description="Compile module AStar"/>
+  
+  <target name="compile.module.astar.production" depends="register.custom.compilers" description="Compile module AStar; production classes">
+    <mkdir dir="${astar.output.dir}"/>
+    <javac2 destdir="${astar.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.astar}/javac">
+      <compilerarg line="${compiler.args.astar}"/>
+      <bootclasspath refid="astar.module.bootclasspath"/>
+      <classpath refid="astar.module.production.classpath"/>
+      <src refid="astar.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.astar"/>
+    </javac2>
+    
+    <copy todir="${astar.output.dir}">
+      <fileset dir="${module.astar.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.astar.tests" depends="register.custom.compilers,compile.module.astar.production" description="compile module AStar; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.astar" description="cleanup module">
+    <delete dir="${astar.output.dir}"/>
+    <delete dir="${astar.testoutput.dir}"/>
+  </target>
+</project>
