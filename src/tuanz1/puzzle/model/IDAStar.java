@@ -1,12 +1,19 @@
 package tuanz1.puzzle.model;
 
+import tuanz1.puzzle.utils.GlobalFunctions;
+
 import java.util.ArrayList;
 
 /**
  * 如何判断不会走回去，
  */
 public class IDAStar {
-    private int count = 0;
+    private int searchCount;
+
+    public int getSearchCount() {
+        return searchCount;
+    }
+
     PuzzleStatusAssitant PSA;
     /**
      * 代表拼图最后一块的字符
@@ -17,10 +24,6 @@ public class IDAStar {
      */
     private int limitDepth;
     /**
-     * 初始状态
-     */
-    private String startStatus;
-    /**
      * 结束状态
      */
     private String endStatus = new String();
@@ -29,9 +32,7 @@ public class IDAStar {
     private String[] solution;
     public IDAStar(int size){
         this.size = size;
-        for(int i = 0; i < size * size; i++){
-            endStatus += (char)('A' + i);
-        }
+        endStatus = GlobalFunctions.initStartStatus(size);
         blankChar = endStatus.charAt(size * size -1);
         PSA  = new PuzzleStatusAssitant(size, endStatus);
     }
@@ -43,7 +44,7 @@ public class IDAStar {
      */
 
     private void DFS(String cur, int depth, int pre_d){
-        count++;
+        searchCount++;
         // 已经有解
         if (flag)
             return;
@@ -77,14 +78,10 @@ public class IDAStar {
             return;
         // 可以移动
         // 获得与空白拼图块交换的拼图块对应位置
-        int blankPos = cur.indexOf(blankChar);
         StringBuffer parent = new StringBuffer(cur);
-        char c = parent.charAt(blankPos + d);
-        // 修改序列
-        parent.replace(blankPos, blankPos + 1, c + "");
-        parent.replace(blankPos + d, blankPos + d + 1, blankChar + "");
+        GlobalFunctions.shuffle(parent, d, blankChar);
         String child = parent.toString();
-        int p = PSA.calMhtDistance(child);
+        int p = PSA.getWeight(child);
         // 是否需要剪枝
         if ( p + depth <=  limitDepth && !flag){
             solution[depth] =  child;
@@ -95,12 +92,12 @@ public class IDAStar {
 
     }
     public ArrayList<String> search(String start){
-        limitDepth = PSA.calMhtDistance(start);
+        limitDepth = PSA.getWeight(start);
         solution = new String[100];
         while (!flag && limitDepth < 100){
             DFS(start, 0, 0);
             if (!flag) {
-                System.out.println("遍历深度" + limitDepth + "无解");
+//                System.out.println("遍历深度" + limitDepth + "无解");
                 limitDepth++;
             }
         }
@@ -111,7 +108,6 @@ public class IDAStar {
             result.add(solution[i]);
         }
         result.add(start);
-
         return result;
     }
 
@@ -121,11 +117,10 @@ public class IDAStar {
     public void printResult(){
         if (flag){
             System.out.println("IDA* 算法:" );
-            System.out.println("总共检索了" + count + "次");
+            System.out.println("总共检索了" + searchCount + "次");
             System.out.println("总共需要走" + limitDepth + "步");
         }else{
             System.out.println("无解");
         }
     }
-
 }

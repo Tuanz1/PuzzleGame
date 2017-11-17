@@ -3,6 +3,7 @@ package tuanz1.puzzle.controller;
 import tuanz1.puzzle.model.AStar;
 import tuanz1.puzzle.model.IDAStar;
 import tuanz1.puzzle.utils.Direction;
+import tuanz1.puzzle.utils.GlobalFunctions;
 import tuanz1.puzzle.utils.Level;
 import tuanz1.puzzle.utils.Algorithm;
 import java.util.ArrayList;
@@ -11,8 +12,12 @@ import java.util.ArrayList;
  * 拼图游戏的控制器
  */
 public class Controller {
-    private char endChar;
-    public int totalSearchNum;
+    private char blankChar;
+    private int searchCount;
+    public int getSearchCount() {
+        return searchCount;
+    }
+
     private Algorithm algorithm;
     public void setAlgorithm(Algorithm algorithm) {
         this.algorithm = algorithm;
@@ -27,8 +32,6 @@ public class Controller {
     public Controller(){
         this.level = Level.NORMAL;
         this.algorithm = Algorithm.ASTART;
-        int size = this.level.getInt();
-        endChar = (char)('A' + (size * size -1));
     }
 
     public Level getLevel() {
@@ -51,7 +54,6 @@ public class Controller {
             int n1 = cur.indexOf(end);
             int n2 = pre.indexOf(end);
             int d = n1 - n2;
-
             if (d == -1)
                  solution[i] = Direction.LEFT;
             else if (d == 1)
@@ -70,23 +72,27 @@ public class Controller {
             case ASTART:
                 AStar aStar = new AStar(this.level.getInt());
                 result = aStar.search(start);
-                totalSearchNum = aStar.getTotalSearch();
+                searchCount = aStar.getSearchCount();
                 break;
             case IDAStar:
                 IDAStar idaStar = new IDAStar(this.level.getInt());
                 result = idaStar.search(start);
+                searchCount = idaStar.getSearchCount();
                 break;
         }
         Direction[] solution = translate(result);
         return solution;
     }
 
+
     /**
      * 获得一个随机的拼图状态
      * @return 随机开始拼图序列
      */
     public String randomStart(){
-        int n = 0;
+        int size = this.level.getInt();
+        int n = 0; //随机次数
+        // 调整随机难度修改下面的数字
         switch (level){
             case NORMAL: n = 100;
             break;
@@ -95,11 +101,10 @@ public class Controller {
             case ULTRA: n = 300;
             break;
         }
-        StringBuffer origin = new StringBuffer();
-        int size = this.level.getInt();
-        for(int i = 0; i< size * size; i++){
-            origin.append((char)('A' + i));
-        }
+
+        StringBuffer origin = new StringBuffer(GlobalFunctions.initStartStatus(size));
+        blankChar = (char)('A' + (size * size -1));
+
         for(int i = 0; i < n; i++){
             // 随机数，用来随机选择一个方向(1:左；2:右；3:上；4:下)
             int r = (int)(Math.random() *4)+1;
@@ -107,27 +112,27 @@ public class Controller {
             int t;
             int index;
             char c;
-            t = origin.toString().indexOf(endChar);
+            t = origin.toString().indexOf(blankChar);
             switch (r){
                 case 1:
                     if((t -1) < 0 || t % size == 0)
                         break;
-                    shffule(origin, -1);
+                    GlobalFunctions.shuffle(origin, -1, blankChar);
                     break;
                 case 2:
                     if((t + 1) >= origin.length() || (t % size) == (size -1 ))
                         break;
-                    shffule(origin, 1);
+                    GlobalFunctions.shuffle(origin, 1, blankChar);
                     break;
                 case 3:
                     if((t - size) < 0 || t < size)
                         break;
-                    shffule(origin, -size);
+                    GlobalFunctions.shuffle(origin, -size, blankChar);
                     break;
                 case 4:
                     if((t + size) >= origin.length() || t > size* (size -1))
                         break;
-                    shffule(origin, size);
+                    GlobalFunctions.shuffle(origin, size, blankChar);
                     break;
                 default:
                     break;
@@ -135,10 +140,5 @@ public class Controller {
         }
         return origin.toString();
     }
-    public void shffule(StringBuffer origin, int d){
-        int blankPos = origin.toString().indexOf(endChar);
-        char c = origin.charAt(blankPos + d);
-        origin.replace(blankPos, blankPos + 1, c + "");
-        origin.replace(blankPos + d, blankPos + 1 + d, endChar + "");
-    }
+
 }

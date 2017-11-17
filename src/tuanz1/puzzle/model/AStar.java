@@ -1,5 +1,7 @@
 package tuanz1.puzzle.model;
 
+import tuanz1.puzzle.utils.GlobalFunctions;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,12 +17,12 @@ public class AStar {
     /**
      * 总共检索的次数
      */
-    private int totalSearch;
+    private int searchCount;
     /**
      * 拼图的大小　默认4 * 4;
      */
-    public int getTotalSearch() {
-        return totalSearch;
+    public int getSearchCount() {
+        return searchCount;
     }
     private int size = 4;
     /**
@@ -42,7 +44,7 @@ public class AStar {
     /**
      * 空白拼图块对应拼图序列中的字符
      */
-    private char blankPuzzle;
+    private char blankChar;
     /**
      * 用于帮助计算当前拼图状态的类
      */
@@ -58,10 +60,8 @@ public class AStar {
 
     public AStar(int size){
         this.size = size;
-        for(int i = 0; i < size * size; i++){
-            endStatus += (char)('A' + i);
-        }
-        blankPuzzle = endStatus.charAt(size * size -1);
+        endStatus = GlobalFunctions.initStartStatus(size);
+        blankChar = endStatus.charAt(size * size -1);
         PSA = new PuzzleStatusAssitant(size, endStatus);
         openList = new PriorityQueue<>(Comparator.comparing(p->p.weight));
 
@@ -90,7 +90,7 @@ public class AStar {
             solution.add(head);
             head = new String(closeList.get(head));
         }
-        totalSearch = closeList.size() + openList.size();
+        searchCount = closeList.size() + openList.size();
 //        printResult();  //测试时候用的
         return solution;
     }
@@ -100,7 +100,7 @@ public class AStar {
      */
     private void expand(PuzzleStatus p){
         closeList.put(p.cur, p.pre);
-        int blankPos = p.cur.indexOf(blankPuzzle);
+        int blankPos = p.cur.indexOf(blankChar);
         // 空白拼图块向上移动
         if (blankPos > size - 1){
             move(p, -size);
@@ -127,12 +127,7 @@ public class AStar {
     private void move(PuzzleStatus p, int k){
         // 提取父状态的拼图序列
         StringBuffer parent = new StringBuffer(p.cur);
-        int blankPos = p.cur.indexOf(blankPuzzle);
-        // 获得与空白拼图块交换的拼图块对应位置
-        char c = parent.charAt(blankPos + k);
-        // 修改序列
-        parent.replace(blankPos, blankPos + 1, c + "");
-        parent.replace(blankPos + k, blankPos + k + 1, blankPuzzle + "");
+        GlobalFunctions.shuffle(parent, k, blankChar);
         String child = parent.toString();
         //　检测是否已经完成拼图
         if (child.equals(endStatus)){
@@ -142,7 +137,7 @@ public class AStar {
         // 检测该子状态是否已经检测过
         if (closeList.containsKey(child))
             return;
-        PuzzleStatus childStatus = new PuzzleStatus(child, p.cur, p.depth + 1, PSA.calPuzzleStatusWeight(child, p.depth + 1));
+        PuzzleStatus childStatus = new PuzzleStatus(child, p.cur, p.depth + 1, PSA.getWeight(child, p.depth + 1));
         openList.offer(childStatus);
     }
 

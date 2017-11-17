@@ -115,7 +115,7 @@ public class CtrlPane {
                 }
             }
             Direction[] solution = ctrl.getSolution(temp.toString());
-            this.logText.setText("检索数:" + ctrl.totalSearchNum + "\n步数  :" + solution.length);
+            this.logText.setText("检索数:" + ctrl.getSearchCount() + "\n步数  :" + solution.length);
             pp.autoPlay(solution);
         });
         setStyle();

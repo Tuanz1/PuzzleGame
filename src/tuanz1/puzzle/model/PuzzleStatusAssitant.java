@@ -9,7 +9,10 @@ public class PuzzleStatusAssitant {
      */
     private String targetStatus;
     private int size;
-    private String cur;
+    /**
+     * 拼图当前状态
+     */
+    private String curStatus;
     public PuzzleStatusAssitant(int size, String targetStatus) {
         this.size = size;
         this.targetStatus = targetStatus;
@@ -17,36 +20,46 @@ public class PuzzleStatusAssitant {
 
     /**
      * 用于A*算法计算拼图状态的权重
-     * @param cur 当前拼图状态序列
+     * @param curStatus 当前拼图状态序列
      * @param depth 搜索深度
      * @return 权重
      */
-    public int calPuzzleStatusWeight(String cur, int depth){
-        this.cur = cur;
-        int weight  = 0;
-        for(int i = 0; i < targetStatus.length(); i++){
-            weight += MhtDistandce(i);
-        }
-        return weight * 5 + depth;
+    public int getWeight(String curStatus, int depth){
+        return 5 * sumOfMhtDistance(curStatus) + depth;
     }
 
     /**
-     * 用于IDA*算法计算曼哈顿距离(不计算空白拼图块）
-     * @param cur　拼图状态
+     * 获得IDA*算法计算拼图权重
+     * @param curStatus 当前拼图状态序列
+     * @return 权重
+     */
+    public int getWeight(String curStatus){
+        this.curStatus = curStatus;
+        return sumOfMhtDistance(curStatus);
+    }
+
+    /**
+     * 曼哈顿距离之和
+     * @param curStatus　拼图状态
      * @return　曼哈顿距离之和
      */
-    public int calMhtDistance(String cur){
-        this.cur = cur;
+    private int sumOfMhtDistance(String curStatus){
+        this.curStatus = curStatus;
         int weight  = 0;
         for(int i = 0; i < targetStatus.length(); i++){
-                weight += MhtDistandce(i);
+                weight += mhtDistandce(i);
         }
         return weight;
     }
 
-    private int MhtDistandce(int i){
+    /**
+     * 计算曼哈顿距离
+     * @param i
+     * @return 曼哈顿距离值
+     */
+    private int mhtDistandce(int i){
         char t = targetStatus.charAt(i);
-        int index = cur.indexOf(t);
+        int index = curStatus.indexOf(t);
         return Math.abs(i % size - index % size) + Math.abs(i / size - index / size);
     }
 }
