@@ -10,9 +10,7 @@ import java.util.PriorityQueue;
  * @author tuanz1
  */
 public class AStar {
-    public int getTotalSearch() {
-        return totalSearch;
-    }
+
 
     /**
      * 总共检索的次数
@@ -21,6 +19,9 @@ public class AStar {
     /**
      * 拼图的大小　默认4 * 4;
      */
+    public int getTotalSearch() {
+        return totalSearch;
+    }
     private int size = 4;
     /**
      * 控制算法是否继续检索，false则表示检测到解决方案
@@ -29,7 +30,7 @@ public class AStar {
 
     /**
      *　拼图的开始状态序列
-     * 用A-Z序列表示（非数字)
+     * 用A-Z序列表示（由于十五数码超过10，会导致一个拼图块占两位，所以使用大写字母替换)
      */
 
     private String startStatus;
@@ -42,6 +43,9 @@ public class AStar {
      * 空白拼图块对应拼图序列中的字符
      */
     private char blankPuzzle;
+    /**
+     * 用于帮助计算当前拼图状态的类
+     */
     private PuzzleStatusAssitant PSA;
     /**
      * 关闭列表：储存已经检索过的拼图状态
@@ -62,6 +66,12 @@ public class AStar {
         openList = new PriorityQueue<>(Comparator.comparing(p->p.weight));
 
     }
+
+    /**
+     * 搜索当前状态下的复原路径
+     * @param start 拼图状态序列
+     * @return 拼图还原路径
+     */
     public ArrayList<String> search(String start){
         this.startStatus = start;
         PuzzleStatus begin = new PuzzleStatus(startStatus, "", 0, 0);
@@ -135,15 +145,20 @@ public class AStar {
         PuzzleStatus childStatus = new PuzzleStatus(child, p.cur, p.depth + 1, PSA.calPuzzleStatusWeight(child, p.depth + 1));
         openList.offer(childStatus);
     }
+
+    /**
+     * 测试函数，用来打印结果
+     */
     public void printResult(){
         int count = 0;
         String head = new String(endStatus);
-        System.out.println("结果:");
+        System.out.println("A* 算法结果:");
         while (true){
-            if (head.equals(""))
+            if (head.equals("")) {
                 break;
 //            System.out.println("第"+count+ "步");
-            System.out.println(head);
+            }
+//            System.out.println(head);
             head = new String(closeList.get(head));
             count++;
         }

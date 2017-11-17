@@ -4,15 +4,19 @@ import tuanz1.puzzle.model.AStar;
 import tuanz1.puzzle.model.IDAStar;
 import tuanz1.puzzle.utils.Direction;
 import tuanz1.puzzle.utils.Level;
-import tuanz1.puzzle.utils.Selector;
+import tuanz1.puzzle.utils.Algorithm;
 import java.util.ArrayList;
 
+/**
+ * 拼图游戏的控制器
+ */
 public class Controller {
+    private char endChar;
     public int totalSearchNum;
-    private Selector selector;
-    public void setSelector(Selector selector) {
-        this.selector = selector;
-        System.out.println("使用算法:" + this.selector);
+    private Algorithm algorithm;
+    public void setAlgorithm(Algorithm algorithm) {
+        this.algorithm = algorithm;
+        System.out.println("使用算法:" + this.algorithm);
     }
 
     private Level level;
@@ -22,9 +26,9 @@ public class Controller {
     }
     public Controller(){
         this.level = Level.NORMAL;
-        this.selector = Selector.ASTART;
-
-
+        this.algorithm = Algorithm.ASTART;
+        int size = this.level.getInt();
+        endChar = (char)('A' + (size * size -1));
     }
 
     public Level getLevel() {
@@ -62,13 +66,13 @@ public class Controller {
 
     public Direction[] getSolution(String start) {
         ArrayList<String> result = new ArrayList<>();
-        switch (selector) {
+        switch (algorithm) {
             case ASTART:
                 AStar aStar = new AStar(this.level.getInt());
                 result = aStar.search(start);
                 totalSearchNum = aStar.getTotalSearch();
                 break;
-            case IDA:
+            case IDAStar:
                 IDAStar idaStar = new IDAStar(this.level.getInt());
                 result = idaStar.search(start);
                 break;
@@ -76,71 +80,65 @@ public class Controller {
         Direction[] solution = translate(result);
         return solution;
     }
-    // 需要重写
+
+    /**
+     * 获得一个随机的拼图状态
+     * @return 随机开始拼图序列
+     */
     public String randomStart(){
-        int size = this.level.getInt();
         int n = 0;
         switch (level){
             case NORMAL: n = 100;
             break;
-            case HIGH: n = 250;
+            case HIGH: n = 200;
             break;
-            case ULTRA: n = 200;
+            case ULTRA: n = 300;
             break;
         }
         StringBuffer origin = new StringBuffer();
-        char endChar = (char)('A' + (size * size -1));
+        int size = this.level.getInt();
         for(int i = 0; i< size * size; i++){
             origin.append((char)('A' + i));
         }
         for(int i = 0; i < n; i++){
+            // 随机数，用来随机选择一个方向(1:左；2:右；3:上；4:下)
             int r = (int)(Math.random() *4)+1;
+            // 暂存空白方块位置，用于判断是否可以移动
             int t;
             int index;
             char c;
+            t = origin.toString().indexOf(endChar);
             switch (r){
                 case 1:
-                    t = origin.toString().indexOf(endChar);
                     if((t -1) < 0 || t % size == 0)
                         break;
-                    index = origin.toString().indexOf(endChar);
-                    c = origin.charAt(index -1);
-                    // 修改序列
-                    origin.replace(index, index + 1, c + "");
-                    origin.replace(index -1, index, endChar + "");
+                    shffule(origin, -1);
                     break;
                 case 2:
-                    t = origin.toString().indexOf(endChar);
                     if((t + 1) >= origin.length() || (t % size) == (size -1 ))
                         break;
-                    index = origin.toString().indexOf(endChar);
-                    c = origin.charAt(index + 1);
-                    // 修改序列
-                    origin.replace(index, index + 1, c + "");
-                    origin.replace(index+1, index + 2, endChar + "");
+                    shffule(origin, 1);
                     break;
                 case 3:
-                    t = origin.toString().indexOf(endChar);
                     if((t - size) < 0 || t < size)
                         break;
-                    index = origin.toString().indexOf(endChar);
-                    c = origin.charAt(index -size);
-                    origin.replace(index, index + 1, c + "");
-                    origin.replace(index -size, index + 1 -size, endChar + "");
+                    shffule(origin, -size);
                     break;
                 case 4:
-                    t = origin.toString().indexOf(endChar);
                     if((t + size) >= origin.length() || t > size* (size -1))
                         break;
-                    index = origin.toString().indexOf(endChar);
-                    c = origin.charAt(index +size);
-                    origin.replace(index, index + 1, c + "");
-                    origin.replace(index +size, index + 1 + size, endChar + "");
+                    shffule(origin, size);
+                    break;
+                default:
                     break;
             }
         }
-        System.out.println(origin);
         return origin.toString();
     }
-
+    public void shffule(StringBuffer origin, int d){
+        int blankPos = origin.toString().indexOf(endChar);
+        char c = origin.charAt(blankPos + d);
+        origin.replace(blankPos, blankPos + 1, c + "");
+        origin.replace(blankPos + d, blankPos + 1 + d, endChar + "");
+    }
 }

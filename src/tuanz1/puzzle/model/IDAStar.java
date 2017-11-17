@@ -6,8 +6,8 @@ import java.util.ArrayList;
  * 如何判断不会走回去，
  */
 public class IDAStar {
+    private int count = 0;
     PuzzleStatusAssitant PSA;
-    private int limit = 20;
     /**
      * 代表拼图最后一块的字符
      */
@@ -15,7 +15,7 @@ public class IDAStar {
     /**
      * 最大的步骤，即为初始状态下曼哈顿值
      */
-    private int limitLength;
+    private int limitDepth;
     /**
      * 初始状态
      */
@@ -36,38 +36,42 @@ public class IDAStar {
         PSA  = new PuzzleStatusAssitant(size, endStatus);
     }
     /**
-     *
-     * @param cur
+     * 深度遍历
+     * @param cur 当前搜索状态
+     * @param depth 搜索深度
+     * @param pre_d 前一次搜索的方向
      */
-    private void DFS(String cur, int length, int pre_d){
+
+    private void DFS(String cur, int depth, int pre_d){
+        count++;
         // 已经有解
         if (flag)
             return;
-        if (length > limitLength)
-            return;
         if (cur.equals(endStatus)){
-                flag = true;
-                limitLength = length;
-                return;
+            flag = true;
+            limitDepth = depth;
+            return;
         }
+        if (depth >= limitDepth)
+            return;
         int blankPos = cur.indexOf(blankChar);
         if (blankPos > size - 1){
-            move(cur, -size, pre_d, length);
+            move(cur, -size, pre_d, depth);
         }
         // 空白拼图块向下移动
         if (blankPos < ((size - 1) * size)){
-            move(cur, size, pre_d, length);
+            move(cur, size, pre_d, depth);
         }
         // 空白拼图块向左移动
         if (blankPos % size > 0){
-            move(cur, -1, pre_d, length);
+            move(cur, -1, pre_d, depth);
         }
         // 空白拼图块向右移动
         if (blankPos % size < (size-1)) {
-            move(cur, 1, pre_d, length);
+            move(cur, 1, pre_d, depth);
         }
     }
-    private void move(String cur, int d, int pre_d, int length){
+    private void move(String cur, int d, int pre_d, int depth){
         // 是否与上一次反向
         if (d + pre_d == 0)
             return;
@@ -82,36 +86,46 @@ public class IDAStar {
         String child = parent.toString();
         int p = PSA.calMhtDistance(child);
         // 是否需要剪枝
-        if ( p + length <=  limitLength && !flag){
-            solution[length] =  child;
-            DFS(child, length + 1, d);
+        if ( p + depth <=  limitDepth && !flag){
+            solution[depth] =  child;
+            DFS(child, depth + 1, d);
             if (flag)
                 return;
         }
 
     }
     public ArrayList<String> search(String start){
-        limitLength = PSA.calMhtDistance(start);
-        solution = new String[200];
-        System.out.println(limitLength);
-        while (!flag && limitLength < 200){
+        limitDepth = PSA.calMhtDistance(start);
+        solution = new String[100];
+        while (!flag && limitDepth < 100){
             DFS(start, 0, 0);
-            if (!flag)
-                limitLength++;
+            if (!flag) {
+                System.out.println("遍历深度" + limitDepth + "无解");
+                limitDepth++;
+            }
         }
-        if (flag){
-            System.out.println("有解:" + limitLength);
-        }else{
-            System.out.println("无解");
-        }
+
         ArrayList<String> result = new ArrayList<>();
 
-        for (int i = limitLength -1; i >=0 ; i--){
+        for (int i = limitDepth -1; i >=0 ; i--){
             result.add(solution[i]);
         }
         result.add(start);
 
         return result;
+    }
+
+    /**
+     * 打印结果
+     */
+    public void printResult(){
+        if (flag){
+            System.out.println("IDA* 算法:" );
+            System.out.println("总共检索了" + count + "次");
+            System.out.println("总共需要走" + limitDepth + "步");
+        }else{
+            System.out.println("无解");
+        }
     }
 
 }
